@@ -6,12 +6,17 @@ import { cn } from '@/lib/utils'
 type ArcReactorProps = {
   isListening: boolean
   onActivate: () => void
+  /** When true, mic uses the browser Web Speech API (Chrome/Edge). */
+  browserStt?: boolean
+  sttError?: string | null
   className?: string
 }
 
 export function ArcReactor({
   isListening,
   onActivate,
+  browserStt = false,
+  sttError = null,
   className,
 }: ArcReactorProps) {
   return (
@@ -19,7 +24,11 @@ export function ArcReactor({
       <motion.button
         type="button"
         aria-pressed={isListening}
-        aria-label={isListening ? 'Listening for command' : 'Activate voice'}
+        aria-label={
+          isListening
+            ? 'Listening — tap again to cancel'
+            : 'Activate voice command'
+        }
         onClick={onActivate}
         className={cn(
           'relative grid h-36 w-36 place-items-center rounded-full border-2 outline-none transition-colors',
@@ -82,8 +91,16 @@ export function ArcReactor({
           strokeWidth={1.5}
         />
       </motion.button>
-      <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-cyan-400/80">
-        {isListening ? 'Acquiring voiceprint…' : 'Voice interface — standby'}
+      <p className="max-w-[18rem] text-center font-mono text-[10px] uppercase tracking-[0.35em] text-cyan-400/80">
+        {sttError
+          ? `STT error: ${sttError}`
+          : isListening
+            ? browserStt
+              ? 'Listening — speak, then pause…'
+              : 'Simulating capture…'
+            : browserStt
+              ? 'Voice in — browser STT'
+              : 'Demo mode — no browser STT'}
       </p>
     </div>
   )

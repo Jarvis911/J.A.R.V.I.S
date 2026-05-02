@@ -1,17 +1,23 @@
+import { useState } from 'react'
+
 import { ArcReactor } from '@/components/jarvis/core/ArcReactor'
 import { ChatLog } from '@/components/jarvis/chat/ChatLog'
 import { AgentStatus } from '@/components/jarvis/dashboard/AgentStatus'
 import { SystemStats } from '@/components/jarvis/dashboard/SystemStats'
+import { VoiceOutputToggle } from '@/components/jarvis/dashboard/VoiceOutputToggle'
 import { JarvisSessionProvider } from '@/context/JarvisSessionContext'
+import { useJarvisTts } from '@/hooks/useJarvisTts'
 import { useVoiceCommand } from '@/hooks/useVoiceCommand'
 
 function JarvisDashboard() {
-  const { isListening, activate } = useVoiceCommand()
+  const { isListening, activate, sttSupported, sttError } = useVoiceCommand()
+  const [voiceOutEnabled, setVoiceOutEnabled] = useState(true)
+  const { isSpeaking, isSupported, cancelSpeech } = useJarvisTts(voiceOutEnabled)
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-slate-950 text-slate-100">
       <header className="shrink-0 border-b border-cyan-500/20 bg-black/40 px-6 py-4 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1600px] items-end justify-between gap-4">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-end justify-between gap-4">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.55em] text-cyan-500/80">
               Stark Industries // R&D
@@ -20,10 +26,21 @@ function JarvisDashboard() {
               J.A.R.V.I.S
             </h1>
           </div>
-          <div className="hidden text-right font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500 sm:block">
-            Secure shell v4
-            <br />
-            <span className="text-cyan-500/70">Encryption: AES-256-GCM</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <VoiceOutputToggle
+              enabled={voiceOutEnabled}
+              onEnabledChange={(on) => {
+                setVoiceOutEnabled(on)
+                if (!on) cancelSpeech()
+              }}
+              isSupported={isSupported}
+              isSpeaking={isSpeaking}
+            />
+            <div className="hidden text-right font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500 sm:block">
+              Secure shell v4
+              <br />
+              <span className="text-cyan-500/70">Encryption: AES-256-GCM</span>
+            </div>
           </div>
         </div>
       </header>
@@ -34,7 +51,12 @@ function JarvisDashboard() {
         <ChatLog className="min-h-[320px] lg:min-h-0 lg:h-full" />
 
         <div className="flex flex-col items-center justify-center gap-2 lg:col-start-2 lg:row-start-2">
-          <ArcReactor isListening={isListening} onActivate={activate} />
+          <ArcReactor
+            isListening={isListening}
+            onActivate={activate}
+            browserStt={sttSupported}
+            sttError={sttError}
+          />
         </div>
 
         <AgentStatus className="min-h-[280px] lg:row-span-2 lg:col-start-3 lg:min-h-0" />
