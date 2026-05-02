@@ -10,9 +10,19 @@ import { useJarvisTts } from '@/hooks/useJarvisTts'
 import { useVoiceCommand } from '@/hooks/useVoiceCommand'
 
 function JarvisDashboard() {
-  const { isListening, activate, sttSupported, sttError } = useVoiceCommand()
   const [voiceOutEnabled, setVoiceOutEnabled] = useState(true)
   const { isSpeaking, isSupported, cancelSpeech } = useJarvisTts(voiceOutEnabled)
+  const {
+    wakeArmed,
+    isWakeScanning,
+    isListening,
+    isSuspendedForTts,
+    toggleWakeArm,
+    sttSupported,
+    sttError,
+  } = useVoiceCommand({
+    suspendWhile: voiceOutEnabled && isSpeaking,
+  })
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-slate-950 text-slate-100">
@@ -52,8 +62,11 @@ function JarvisDashboard() {
 
         <div className="flex flex-col items-center justify-center gap-2 lg:col-start-2 lg:row-start-2">
           <ArcReactor
+            wakeArmed={wakeArmed}
+            isWakeScanning={isWakeScanning}
             isListening={isListening}
-            onActivate={activate}
+            isSuspendedForTts={isSuspendedForTts}
+            onToggleWake={toggleWakeArm}
             browserStt={sttSupported}
             sttError={sttError}
           />
